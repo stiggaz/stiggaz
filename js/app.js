@@ -1,14 +1,31 @@
 'use strict';
 
+/* INIT */
 var stiggazApp = angular.module('stiggazApp', [
   'ngRoute',
 //  'phonecatAnimations',
   'stiggazControllers',
 //  'phonecatFilters',
-  'stiggazServices'
-]);
+  'stiggazServices',
+    'facebook'
+]).config([
+    'FacebookProvider',
+    function(FacebookProvider) {
+     var myAppId = '1492206844327957';
+     
+     // You can set appId with setApp method
+     FacebookProvider.setAppId('1492206844327957');
+     
+     /**
+      * After setting appId you need to initialize the module.
+      * You can pass the appId on the init method as a shortcut too.
+      */
+     FacebookProvider.init(myAppId);
+     
+    }
+  ])
 
-
+/* ROUTING */
 stiggazApp.config(['$routeProvider',
   function($routeProvider) {
     $routeProvider.
@@ -20,7 +37,10 @@ stiggazApp.config(['$routeProvider',
             templateUrl: 'partials/help.html',
             controller: 'HelpCtrl'
 	}).
-
+	when('/login', {
+            templateUrl: 'partials/login.html',
+            controller: 'LoginCtrl'
+        }).
 /*
       when('/map', {
         templateUrl: 'partials/map.html',
@@ -30,10 +50,7 @@ stiggazApp.config(['$routeProvider',
         templateUrl: 'partials/help.html',
         controller: 'HelpCtrl'
       }).
-      when('/login', {
-        templateUrl: 'partials/login.html',
-        controller: 'LoginCtrl'
-      }).
+      
       when('/stat', {
         templateUrl: 'partials/stat.html',
         controller: 'StatCtrl'

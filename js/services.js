@@ -12,8 +12,51 @@ stiggazServices.factory('Deck', ['$resource', function($resource){
 }]);
 */
 
+stiggazServices.factory('userService', ['$resource', function($resource) {
+    var APIGEE_ORG = 'crisk',
+        APIGEE_APP = 'sandbox',
+        dataClient;
+
+    dataClient = new Apigee.Client({
+        orgName: APIGEE_ORG,
+        appName: APIGEE_APP
+    });
+
+    function logError(error){
+        if(error) {
+            console.log(error);
+        }
+    }
+
+    return {
+	update: function(user) {
+	    card.type = 'users';
+	    var entity = new Apigee.Entity({
+		client: dataClient,
+		data: user
+	    });
+	    entity.save(logError);
+	},
+
+	getByFBId: function(id) {
+	    var options = { 
+		endpoint:"users",
+		qs: {ql:"id='" + id + "'"}
+	    };
+	    var result = [];
+	    dataClient.request(options, function(error, response) {
+		if (error) {
+		    console.log(error);
+		} else {
+		     result = response.entities;
+		}
+	    });
+	    return result;
+	}
+    };
+}]);
+
 stiggazServices.factory('deckStorage', ['$resource',function($resource) {
-//var deckStorageService = stiggazApp.factory('deckStorage',  function($q) {
     var APIGEE_ORG = 'crisk',
         APIGEE_APP = 'sandbox',
         dataClient;
