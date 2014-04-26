@@ -4,15 +4,22 @@
 
 var stiggazServices = angular.module('stiggazServices', ['ngResource']);
 
-/*
-stiggazServices.factory('Deck', ['$resource', function($resource){
-    return $resource('phones/:phoneId.json', {}, {
-	query: {method:'GET', params:{phoneId:'phones'}, isArray:true}
-    });
-}]);
-*/
 
-stiggazServices.factory('userService', ['$resource', function($resource) {
+
+stiggazServices.factory('Auth', function(){
+    var user;
+    
+    return{
+	setUser : function(aUser){
+            user = aUser;
+	},
+	isLoggedIn : function(){
+            return(typeof user !== 'undefined' && typeof user.id == 'string')? user : false;
+	}
+    }
+});
+
+stiggazServices.factory('userService', ['$resource', 'ezfb', function($resource, ezfb) {
     var APIGEE_ORG = 'crisk',
         APIGEE_APP = 'sandbox',
         dataClient;
@@ -29,8 +36,19 @@ stiggazServices.factory('userService', ['$resource', function($resource) {
     }
 
     return {
+	handleUser: function(user) {
+	    if(typeof user.id == 'string') {
+		var userEntity = this.getById(user.id);
+		alert(userEntity.length);
+		if (userEntity.length == 0) {
+		    this.update(user);
+		}
+		console.log(userEntity);
+	    }
+	},
+
 	update: function(user) {
-	    card.type = 'users';
+	    user.type = 'users';
 	    var entity = new Apigee.Entity({
 		client: dataClient,
 		data: user
@@ -38,7 +56,7 @@ stiggazServices.factory('userService', ['$resource', function($resource) {
 	    entity.save(logError);
 	},
 
-	getByFBId: function(id) {
+	getById: function(id) {
 	    var options = { 
 		endpoint:"users",
 		qs: {ql:"id='" + id + "'"}
