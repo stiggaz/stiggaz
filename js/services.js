@@ -14,12 +14,12 @@ stiggazServices.factory('Auth', function(){
             user = aUser;
 	},
 	isLoggedIn : function(){
-            return(typeof user !== 'undefined' && typeof user.id == 'string')? user : false;
+	    return(typeof user !== 'undefined' && typeof user.id == 'string')? user : false;
 	}
     }
 });
 
-stiggazServices.factory('userService', ['$resource', 'ezfb', function($resource, ezfb) {
+stiggazServices.factory('userService', ['$resource', 'ezfb', 'deckStorage', 'Auth', function($resource, ezfb, deckStorage, Auth) {
     var APIGEE_ORG = 'crisk',
         APIGEE_APP = 'sandbox',
         dataClient;
@@ -39,11 +39,21 @@ stiggazServices.factory('userService', ['$resource', 'ezfb', function($resource,
 	handleUser: function(user) {
 	    if(typeof user.id == 'string') {
 		var userEntity = this.getById(user.id);
-		alert(userEntity.length);
 		if (userEntity.length == 0) {
 		    this.update(user);
+		    userEntity = user;
+		} else {
+		    // nimm erstes element;
+		    userEntity = userEntity[0];
 		}
-		console.log(userEntity);
+		return userEntity;
+	    }
+	},
+
+	getCards: function() {
+	    var user = Auth.isLoggedIn();
+	    if (user) {
+		return user.cards;
 	    }
 	},
 

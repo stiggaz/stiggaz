@@ -17,12 +17,11 @@ stiggazControllers.controller('LoginCtrl', ['$scope',
 					    '$window', 
 					    'ezfb', 
 					    'Auth', 
-					    function($scope, $location, $window, ezfb, Auth) {
-						$scope.startScreen = true;
+					    'userService',
+					    function($scope, $location, $window, ezfb, Auth, userService) {
 						updateLoginStatus(updateApiMe);
 
 						$scope.$watch('loginStatus', function() {
-						    console.log($scope.loginStatus);
 						    if ($scope.loginStatus.status == 'connected') {
 							$('.connected-status').hide();
 							$('.unknown-status').show();
@@ -30,6 +29,11 @@ stiggazControllers.controller('LoginCtrl', ['$scope',
 							$('.connected-status').show();
 							$('.unknown-status').hide();
 						    }
+						});
+
+						$scope.$watch('apiMe', function() {
+						    Auth.setUser($scope.apiMe);
+						    Auth.setUser(userService.handleUser(Auth.isLoggedIn()));
 						});
 
 						$scope.login = function () {
@@ -50,16 +54,14 @@ stiggazControllers.controller('LoginCtrl', ['$scope',
 						
 						function updateLoginStatus (more) {
 						    ezfb.getLoginStatus(function (res) {
-							$scope.loginStatus = res;
-							
 							(more || angular.noop)();
+							$scope.loginStatus = res;
 						    });
 						}
 						
 						function updateApiMe () {
 						    ezfb.api('/me', function (res) {
 							$scope.apiMe = res;
-							Auth.setUser(res);
 						    });
 						}
 
@@ -74,18 +76,20 @@ stiggazControllers.controller('LoginCtrl', ['$scope',
 
 
 stiggazControllers.controller('DeckCtrl', ['$scope', 
-					   'deckStorage',
-					   'Auth', 
-					   function ($scope, deckStorage, Auth) {
-					       $scope.logged = Auth.isLoggedIn();
-					       $scope.deck = deckStorage.fetchAll();
+					   'userService',
+					   'Auth',
+					   function ($scope, userService, Auth) {
+					       
+					       $scope.deck = userService.getCards();
 					       $scope.incrementCount = function(card) {
 						   if (card.count < 5) {
 						       card.count++;
 						   } else {
 						       card.count = 0;
 						   }
-						   deckStorage.update(card);
+						   var user = Auth.isLoggedIn();
+						   
+						   userService.update(user);
 					       };
 					       
 					   }]
