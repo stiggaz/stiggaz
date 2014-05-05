@@ -13,13 +13,18 @@ stiggazServices.factory('Auth', function(){
 	setUser : function(aUser){
             user = aUser;
 	},
+
+	getUser : function() {
+	    return this.isLoggedIn();
+	},
+
 	isLoggedIn : function(){
 	    return(typeof user !== 'undefined' && typeof user.id == 'string')? user : false;
 	}
     }
 });
 
-stiggazServices.factory('userService', ['$resource', 'ezfb', 'deckStorage', 'Auth', function($resource, ezfb, deckStorage, Auth) {
+stiggazServices.factory('userService', ['$resource', 'ezfb', 'Auth', function($resource, ezfb, Auth) {
     var APIGEE_ORG = 'crisk',
         APIGEE_APP = 'sandbox',
         dataClient;
@@ -84,7 +89,7 @@ stiggazServices.factory('userService', ['$resource', 'ezfb', 'deckStorage', 'Aut
     };
 }]);
 
-stiggazServices.factory('deckStorage', ['$resource',function($resource) {
+stiggazServices.factory('cardService', ['$resource', 'Auth', function($resource, Auth) {
     var APIGEE_ORG = 'crisk',
         APIGEE_APP = 'sandbox',
         dataClient;
@@ -101,8 +106,49 @@ stiggazServices.factory('deckStorage', ['$resource',function($resource) {
     }
 
     return {
+
+	initUser: function() {
+	    var user = Auth.getUser();
+	    if (user == false) return;
+
+	    // überprüfen ob der benutzer schon karten hat
+	    var existingCollection = this.getCollection();
+
+	    if (existingCollection.length == 0) {
+		// decks neu anlegen
+		var allCards = this.fetchAll();
+		var allCardsLength = allCards.length;
+		var deck = [];
+		for (var n = 0; n < allCardsLength; n++) {
+		    deck[n] = {
+			name: allCards[n].name,
+			count: 0,
+			cardUUID: allCards[n].uuid,
+			userUUID: user.uuid,
+			userName: user.name,
+			type: 'collections'
+		    };
+		}
+
+		var options = {
+		    method:'POST',
+		    endpoint:'collections', //The collection name
+		    body:deck
+		};
+
+		//Call request() to initiate the API call and process the results
+		dataClient.request(options, function (error, result) {
+		    if (error) {
+			//error
+		    } else {
+			//success        
+		    }
+		});
+	    }
+	},
+
 	update: function(card) {
-	    card.type = 'cards';
+	    card.type = 'collections';
 	    var entity = new Apigee.Entity({
 		client: dataClient,
 		data: card
@@ -110,6 +156,127 @@ stiggazServices.factory('deckStorage', ['$resource',function($resource) {
 	    entity.save(logError);
 	},
 
+	getCollection: function() {
+	    var user = Auth.getUser();
+	    if (user == false) return;
+
+	    var options = { 
+		endpoint:"collections",
+		qs: {ql:"userUUID=" + user.uuid, limit:200}
+	    };
+	    var result = [];
+	    dataClient.request(options, function(error, response) {
+		if (error) {
+		    console.log(error);
+		} else {
+		     result = response.entities;
+		}
+	    });
+	    return result;
+	},
+
+	getCollectionById: function(collectionUUID) {
+	    var user = Auth.getUser();
+	    if (user == false) return;
+	    
+	    var options = { 
+		endpoint:"collections",
+		qs: {ql:"uuid=" + collectionUUID}
+	    };
+	    var result = [];
+	    dataClient.request(options, function(error, response) {
+		if (error) {
+		    console.log(error);
+		} else {
+		    if (response.entities.length == 1) return response.entities[0];
+		    else return false;
+		}
+	    });
+	    return result;
+	},
+
+	updateCard: function(card) {
+	    var user = Auth.getUser();
+	    if (user == false) return;
+
+	    if (existingEntity == false) {
+		var entity = new Apigee.Entity({
+		    client: dataClient,
+		    data: {
+			type: 'collections',
+			userUUID: user.uuid,
+			userName: user.name,
+			cardUUID: card.cardUUID,
+			cardName: card.name,
+			count: 0
+		    }
+		});
+		entity.save(logError);
+return entity;
+	    } else {
+		existingEntity.count++;
+		existingEntity.save(logError);
+return existingEntity;
+	    }
+
+	    
+
+/*
+	    var connecting_entity_options = {
+		client: dataClient,
+		data: {
+		    type:'users',
+		    uuid:user.uuid
+		}
+	    };
+	    var connecting_entity = new Apigee.Entity(connecting_entity_options);
+
+	    var connected_entity_options = {
+		client: dataClient,
+		data: {
+		    type:'cards',
+		    uuid:'466a245a-d381-11e3-a961-6b9649832099'
+		}
+	    };
+	    var connected_entity = new Apigee.Entity(connected_entity_options);
+
+	    connecting_entity.connect('has', connected_entity, function (error, result) {
+		
+		if (error) { 
+		    // Error
+		} else { 
+		    // Success
+		}
+
+	    });
+*/
+	},
+
+	getCardsOfUser: function() {
+	    var user = Auth.getUser();
+	    if (user == false) return;
+
+	    var options = {
+		client: dataClient,
+		data: {
+		    type:'users',
+		    uuid:user.uuid
+		}
+	    };
+
+	    var entity = new Apigee.Entity(options);
+	    var res = [];
+	    entity.getConnections('has', function (error, result) {
+		if (error) { 
+		    console.log('could not fetch cards: ' + error);
+		} else { 
+		    res = result.entities;
+		}
+	    });
+
+	    return res;
+	},
+	
 	getByName: function(name) {
 	    var options = { 
 		endpoint:"cards",

@@ -18,11 +18,12 @@ stiggazControllers.controller('LoginCtrl', ['$scope',
 					    'ezfb', 
 					    'Auth', 
 					    'userService',
-					    function($scope, $location, $window, ezfb, Auth, userService) {
+					    'cardService',
+					    function($scope, $location, $window, ezfb, Auth, userService, cardService) {
 						updateLoginStatus(updateApiMe);
 
 						$scope.$watch('loginStatus', function() {
-						    if ($scope.loginStatus.status == 'connected') {
+						    if ($scope.loginStatus && $scope.loginStatus.status == 'connected') {
 							$('.connected-status').hide();
 							$('.unknown-status').show();
 						    } else {
@@ -34,6 +35,8 @@ stiggazControllers.controller('LoginCtrl', ['$scope',
 						$scope.$watch('apiMe', function() {
 						    Auth.setUser($scope.apiMe);
 						    Auth.setUser(userService.handleUser(Auth.isLoggedIn()));
+						    cardService.initUser();
+						    $scope.username = $scope.apiMe.first_name;
 						});
 
 						$scope.login = function () {
@@ -76,20 +79,31 @@ stiggazControllers.controller('LoginCtrl', ['$scope',
 
 
 stiggazControllers.controller('DeckCtrl', ['$scope', 
-					   'userService',
+					   'cardService',
 					   'Auth',
-					   function ($scope, userService, Auth) {
-					       
-					       $scope.deck = userService.getCards();
-					       $scope.incrementCount = function(card) {
+					   function ($scope, cardService, Auth) {
+					      
+					       $scope.deck = cardService.getCollection();
+
+					       $scope.updateCard = function(card) {
+
 						   if (card.count < 5) {
 						       card.count++;
 						   } else {
 						       card.count = 0;
 						   }
-						   var user = Auth.isLoggedIn();
+
+						   cardService.update(card);
 						   
-						   userService.update(user);
+						   
+/*
+						   if (card.count < 5) {
+						       card.count++;
+						   } else {
+						       card.count = 0;
+						   }
+						   var user = Auth.isLoggedIn();*/
+						   //userService.update(user);
 					       };
 					       
 					   }]
@@ -99,6 +113,13 @@ stiggazControllers.controller('HelpCtrl', ['$scope',
 					   'Auth', 
 					   function ($scope, Auth) {
 					       $scope.logged = Auth.isLoggedIn();
+					   }]
+			     );
+
+stiggazControllers.controller('StatCtrl', ['$scope', 
+					   'Auth', 
+					   function ($scope, Auth) {
+					       
 					   }]
 			     );
 

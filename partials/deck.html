@@ -41,23 +41,32 @@
         <div class="col-lg-12">
           <section class="toolbar clearfix m-t-large m-b">
 
-	  <!-- no card -->
+	  <!--
 	  <div class="col-md-1" ng-repeat="card in deck track by $index">
+	    <a ng-click="updateCard(card)" class="btn btn-circle">
+	  		<i class="fa fa-user"></i>{{card.name}}
+	  		<b class="badge bg-white">{{$index}}</b>
+	  	</a>
+	  </div>
+-->
+	  
+	  <!-- no card -->
+	  <div class="col-sm-2 col-xs-2 col-md-1" ng-repeat="card in deck track by $index">
 
 	    
-	  	<a ng-click="incrementCount(card)" class="btn
+	  	<a ng-click="updateCard(card)" class="btn
 	  		btn-circle" ng-if="card.count == 0">
 	  		<i class="fa fa-user"></i>{{card.name}}
 	  		<b class="badge bg-white" ng-if="card.count > 1">{{card.count}}</b>
 	  	</a>
 
-	    <a ng-click="incrementCount(card)" class="btn
+	    <a ng-click="updateCard(card)" class="btn
 	  		btn-success btn-circle"  ng-if="card.count == 1">
 	  		<i class="fa fa-user"></i>{{card.name}}
 	  		<b class="badge bg-white" ng-if="card.count > 1">{{card.count}}</b>
 	  	</a>
 
-	    	<a ng-click="incrementCount(card)" class="btn
+	    	<a ng-click="updateCard(card)" class="btn
 	  		btn-warning btn-circle"  ng-if="card.count > 1">
 	  		<i class="fa fa-user"></i>{{card.name}}
 	  		<b class="badge bg-white" ng-if="card.count > 1">{{card.count}}</b>
