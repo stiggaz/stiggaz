@@ -1,14 +1,56 @@
-<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
-<html> <head>
-<title></title>
-</head>
+<div class="col-lg-6">
 
-<body>
-<h1>Chat</h1>
+        <section class="panel">
+            <header class="panel-heading">Chat</header>
+            <section class="panel-body chat-list">
+
+  <div  ng-repeat="msg in chat track by $index">
+
+    <!-- me -->
+ <article id="chat-id-1" class="chat-item media arrow arrow-left"
+                ng-if="msg.senderUUID == me.uuid">
+                <a href="#" class="pull-left thumb-small avatar"><img src="images/avatar.jpg" class="img-circle"></a>
+                <section class="media-body">
+                  <div class="panel bg-lighter text-small m-b-none">
+                    <div class="panel-body">
+                    {{msg.message}}
+                    </div>
+                  </div>
+                  <small class="text-muted"><i class="fa fa-check text-success"></i> {{getPrettyTime(msg.created)}}</small>
+                </section>
+              </article>
 
 
+	 <article id="chat-id-1" class="chat-item media arrow arrow-right" ng-if="msg.senderUUID != me.uuid">
+                <a class="pull-right thumb-small"><span class="btn btn-circle btn-xs"><i class="fa fa-user"></i></span></a>
+                <section class="media-body">
+                  <div class="panel text-small m-b-none">
+                    <div class="panel-body">
+                    {{msg.message}}
+		    </div>
+                  </div>
+                  <small class="text-muted"><i class="fa fa-check text-success"></i> 1 minutes ago</small>
+                </section>
+              </article>	  
+    
+    </div>
 
-<hr>
-<address></address>
-<!-- hhmts start -->Last modified: Thu Apr 10 22:30:53 CEST 2014 <!-- hhmts end -->
-</body> </html>
+    <!-- chat form -->
+              <article class="chat-item media" id="chat-form">
+                <a class="pull-left thumb-small avatar"><img src="images/avatar.jpg" class="img-circle"></a>
+                <section class="media-body">
+                  <form action="" class="m-b-none">
+                    <div class="input-group">
+                      <input type="text" placeholder="Say something"
+              class="form-control" ng-model="chatMessage">
+                      <span class="input-group-btn">
+                        <button class="btn btn-primary" type="button" ng-click="sendMessage()">Senden</button>
+                      </span>
+                    </div>
+                  </form>
+                </section>
+              </article>
+		    
+            </section>
+          </section>
+        </div>

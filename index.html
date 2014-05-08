@@ -6,11 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"> 
 <meta charset="utf-8">
   <link rel="stylesheet" href="/css/bootstrap.min.css">
-  <link rel="stylesheet" href="/css/app.css">
-  <!--<link rel="stylesheet" href="/css/animations.css">-->
-
-  <script src="/lib/jquery-2.1.0.min.js"></script>
-
+<link rel="stylesheet" href="/css/app.css">
+<script src="/lib/jquery-2.1.0.min.js"></script>
 <script src="http://yandex.st/highlightjs/7.3/highlight.min.js"></script>
 
   <script src="/lib/angular.min.js"></script>
@@ -20,12 +17,14 @@
 <script src="/lib/apigee.min.js"></script>
 <script src="/lib/bootstrap.min.js"></script>
 <script src="/lib/easypiechart/jquery.easy-pie-chart.js"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=true"></script>
+
+<script src="/lib/gmaps.js"></script>
 
 <script src="http://pc035860.github.io/angular-highlightjs/angular-highlightjs.min.js"></script>
 <script src="/lib/angular-easyfb.min.js"></script>
 
   <script src="/js/app.js"></script>
-<script src="/js/app.plugin.js"></script>
 
 
 <script src="/js/theme.data.js"></script>
@@ -33,13 +32,6 @@
   <script src="/js/controllers.js"></script>
   <script src="/js/services.js"></script>
  <script src="js/fuelux/fuelux.js"></script>
-
-
-
-<!--<script src="js/animations.js"></script>-->
-<!--<script src="/js/filters.js"></script>-->
-   
-  
   
   <link rel="stylesheet" href="/css/font-awesome.min.css">
   <link rel="stylesheet" href="/css/plugin.css">
@@ -62,7 +54,7 @@
     <ul class="nav navbar-nav navbar-avatar pull-right unknown-status">
       <li class="dropdown">
         <a class="dropdown-toggle" data-toggle="dropdown">            
-          <span class="hidden-xs-only">Hello {{username}}</span>
+          <span class="hidden-xs-only">Hallo</span>
           <span class="thumb-small avatar inline"><img src="images/avatar.jpg" alt="Mika Sokeil" class="img-circle"></span>
           <b class="caret hidden-xs-only"></b>
         </a>
@@ -83,7 +75,7 @@
   <nav id="nav" class="nav-primary hidden-xs nav-vertical" ng-controller="NavCtrl" ng-show="!startScreen">
     <ul class="nav" data-spy="affix" data-offset-top="50">
       <li class="unknown-status" ng-class="{active:isActive('/deck')}"><a href="/#/deck"><i class="fa fa-edit fa-lg"></i><span>Stickersammlung</span></a></li>
-      <li class="unknown-status" ng-class="{active:isActive('/maps')}"><a href="/#/maps"><i class="fa fa-compass fa-lg"></i><span>Tauschpartner finden</span></a></li>
+      <li class="unknown-status" ng-class="{active:isActive('/map')}"><a href="/#/map"><i class="fa fa-compass fa-lg"></i><span>Tauschpartner finden</span></a></li>
       <!--<li class="unknown-status" ng-class="{active:isActive('/chat')}"><a href="/#/chat"><i class="fa fa-comment-o fa-lg"></i><span>Chatten</span></a></li>-->
       <li class="unknown-status" ng-class="{active:isActive('/stat')}"><a href="/#/stat"><i class="fa fa-signal fa-lg"></i><span>Statistik</span></a></li>
       <li class="unknown-status" ng-class="{active:isActive('/help')}"><a href="/#/help"><i class="fa fa-question fa-lg"></i><span>Hilfe</span></a></li>

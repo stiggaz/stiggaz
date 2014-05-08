@@ -55,13 +55,6 @@ stiggazServices.factory('userService', ['$resource', 'ezfb', 'Auth', function($r
 	    }
 	},
 
-	getCards: function() {
-	    var user = Auth.isLoggedIn();
-	    if (user) {
-		return user.cards;
-	    }
-	},
-
 	update: function(user) {
 	    user.type = 'users';
 	    var entity = new Apigee.Entity({
@@ -89,6 +82,68 @@ stiggazServices.factory('userService', ['$resource', 'ezfb', 'Auth', function($r
     };
 }]);
 
+stiggazServices.factory('chatService', ['$resource', 'Auth', function($resource, Auth) {
+    var APIGEE_ORG = 'crisk',
+        APIGEE_APP = 'sandbox',
+        dataClient,
+	me,
+	friend;
+
+    dataClient = new Apigee.Client({
+        orgName: APIGEE_ORG,
+        appName: APIGEE_APP
+    });
+
+    me = Auth.getUser();
+
+    function logError(error){
+        if(error) {
+            console.log(error);
+        }
+    }
+
+    return {
+	sendMessage: function(friendId, message) {
+	    var chatMessage = {
+		userUUID: me.uuid,
+		friendUUID: friendId,
+		senderUUID: me.uuid,
+		message: message
+	    };
+
+	    var options = {
+		    method: 'POST',
+		    endpoint: 'chats',
+		    body: chatMessage
+		};
+
+		dataClient.request(options, function (error, result) {
+		    if (error) {
+			//error
+		    } else {
+			//success        
+		    }
+		});
+	},
+
+	getChat: function(friendId) {
+	    var options = { 
+		endpoint:"chats",
+		qs: {ql:"userUUID=" + me.uuid + " and friendUUID='" + friendId + "'"}
+	    };
+	    dataClient.request(options, function(error, response) {
+		if (error) {
+		    console.log(error);
+		} else {
+		     cardDeck = response.entities;
+		}
+	    });
+	    return cardDeck;
+	}
+    };
+}]);
+
+
 stiggazServices.factory('cardService', ['$resource', 'Auth', function($resource, Auth) {
     var APIGEE_ORG = 'crisk',
         APIGEE_APP = 'sandbox',
@@ -112,9 +167,10 @@ stiggazServices.factory('cardService', ['$resource', 'Auth', function($resource,
 	    if (user == false) return;
 
 	    // überprüfen ob der benutzer schon karten hat
-	    var existingCollection = this.getCollection();
+	    cardDeck = this.getCollection();
+	    //var existingCollection = this.getCollection();
 
-	    if (existingCollection.length == 0) {
+	    if (cardDeck.length == 0) {
 		// decks neu anlegen
 		var allCards = this.fetchAll();
 		var allCardsLength = allCards.length;
@@ -131,12 +187,11 @@ stiggazServices.factory('cardService', ['$resource', 'Auth', function($resource,
 		}
 
 		var options = {
-		    method:'POST',
-		    endpoint:'collections', //The collection name
-		    body:deck
+		    method: 'POST',
+		    endpoint: 'collections',
+		    body: deck
 		};
 
-		//Call request() to initiate the API call and process the results
 		dataClient.request(options, function (error, result) {
 		    if (error) {
 			//error
@@ -156,147 +211,47 @@ stiggazServices.factory('cardService', ['$resource', 'Auth', function($resource,
 	    entity.save(logError);
 	},
 
+	getCollectionByUser: function(user) {
+	    var options = { 
+		endpoint:"collections",
+		qs: {ql:"userUUID=" + user.uuid, limit:640}
+	    };
+	    dataClient.request(options, function(error, response) {
+		if (error) {
+		    console.log(error);
+		} else {
+		     cardDeck = response.entities;
+		}
+	    });
+	    return cardDeck;
+	},
+
 	getCollection: function() {
 	    var user = Auth.getUser();
 	    if (user == false) return;
 
-	    var options = { 
-		endpoint:"collections",
-		qs: {ql:"userUUID=" + user.uuid, limit:200}
-	    };
-	    var result = [];
-	    dataClient.request(options, function(error, response) {
-		if (error) {
-		    console.log(error);
-		} else {
-		     result = response.entities;
-		}
-	    });
-	    return result;
-	},
-
-	getCollectionById: function(collectionUUID) {
-	    var user = Auth.getUser();
-	    if (user == false) return;
-	    
-	    var options = { 
-		endpoint:"collections",
-		qs: {ql:"uuid=" + collectionUUID}
-	    };
-	    var result = [];
-	    dataClient.request(options, function(error, response) {
-		if (error) {
-		    console.log(error);
-		} else {
-		    if (response.entities.length == 1) return response.entities[0];
-		    else return false;
-		}
-	    });
-	    return result;
-	},
-
-	updateCard: function(card) {
-	    var user = Auth.getUser();
-	    if (user == false) return;
-
-	    if (existingEntity == false) {
-		var entity = new Apigee.Entity({
-		    client: dataClient,
-		    data: {
-			type: 'collections',
-			userUUID: user.uuid,
-			userName: user.name,
-			cardUUID: card.cardUUID,
-			cardName: card.name,
-			count: 0
-		    }
-		});
-		entity.save(logError);
-return entity;
-	    } else {
-		existingEntity.count++;
-		existingEntity.save(logError);
-return existingEntity;
+	    if (cardDeck.length > 0) {
+		return cardDeck;
 	    }
 
-	    
-
-/*
-	    var connecting_entity_options = {
-		client: dataClient,
-		data: {
-		    type:'users',
-		    uuid:user.uuid
-		}
-	    };
-	    var connecting_entity = new Apigee.Entity(connecting_entity_options);
-
-	    var connected_entity_options = {
-		client: dataClient,
-		data: {
-		    type:'cards',
-		    uuid:'466a245a-d381-11e3-a961-6b9649832099'
-		}
-	    };
-	    var connected_entity = new Apigee.Entity(connected_entity_options);
-
-	    connecting_entity.connect('has', connected_entity, function (error, result) {
-		
-		if (error) { 
-		    // Error
-		} else { 
-		    // Success
-		}
-
-	    });
-*/
-	},
-
-	getCardsOfUser: function() {
-	    var user = Auth.getUser();
-	    if (user == false) return;
-
-	    var options = {
-		client: dataClient,
-		data: {
-		    type:'users',
-		    uuid:user.uuid
-		}
-	    };
-
-	    var entity = new Apigee.Entity(options);
-	    var res = [];
-	    entity.getConnections('has', function (error, result) {
-		if (error) { 
-		    console.log('could not fetch cards: ' + error);
-		} else { 
-		    res = result.entities;
-		}
-	    });
-
-	    return res;
-	},
-	
-	getByName: function(name) {
 	    var options = { 
-		endpoint:"cards",
-		qs: {ql:"name='" + name + "'"}
+		endpoint:"collections",
+		qs: {ql:"userUUID=" + user.uuid, limit:640}
 	    };
-	    var result = [];
 	    dataClient.request(options, function(error, response) {
 		if (error) {
 		    console.log(error);
 		} else {
-		     result = response.entities;
+		     cardDeck = response.entities;
 		}
 	    });
-	    return result;
+	    return cardDeck;
 	},
-
+	
 	fetchAll: function() {
 	    var options = { 
 		endpoint:"cards",
-		qs:{limit:200}
+		qs:{limit:640}
 	    };
 	    var result = [];
 	    dataClient.request(options, function(error, response) {
@@ -309,6 +264,125 @@ return existingEntity;
 	    return result;
 	}
     };
-
 }]);
 
+
+stiggazServices.factory('locationService', ['$resource', 'Auth', 'userService', 'cardService', function($resource, Auth, userService, cardService) {
+    dataClient = new Apigee.Client({
+        orgName: APIGEE_ORG,
+        appName: APIGEE_APP
+    });
+
+    var map;
+    var markers;
+
+    function logError(error){
+        if(error) {
+            console.log(error);
+        }
+    }
+
+    function setMarker(user, friend) {
+
+	if (typeof markers === 'undefined') {
+	    markers = new GMaps({
+		el: '#gmap_marker',
+		lat: user.location.latitude,
+		lng: user.location.longitude,
+		zoom: 13
+	    });
+	} 
+
+	markers.addMarker({
+	    lat: friend.location.latitude,
+	    lng: friend.location.longitude,
+	    title: 'Marker',
+		infoWindow: {
+		    content: getMarkerContent(friend)
+		}
+	});
+	
+    }
+
+    function getMarkerContent(friend) {
+	var x = 1,
+	    y = 3, 
+	    string = friend.first_name;
+	string += ' hat <strong>' + x + '</strong> Sticker für Dich. <br>';
+	string += 'Du hast <strong>' + y + '</strong> für ihn. <br>';
+	string += '<button>Kontaktieren</button>';
+	return string;
+    }
+
+    return {
+	init: function() {
+	    map = new GMaps({
+		el: '#gmap_marker',
+		lat: 48.1391265,
+		lng: 11.5801863,
+		zoom: 13
+	    });
+
+	    if (navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/)) {
+		// Wait for the device to be ready to grab the geoloc
+		// Helps avoid the unsightly iOS authorization message
+		// http://stackoverflow.com/questions/1673579/location-permission-alert-on-iphone-with-phonegap 
+		document.addEventListener("deviceready", onDeviceReady, false);
+	    } else {
+		this.onDeviceReady(); //this is the browser
+	    }
+	},
+
+	onDeviceReady: function() {
+	    navigator.geolocation.getCurrentPosition(this.onGetLocationSuccess, this.onGetLocationError);
+	},
+
+	onGetLocationSuccess: function(location) {
+	    map.setCenter(location.coords.latitude, location.coords.longitude);
+
+	    // update user location
+	    var user = Auth.getUser();
+	    user.location = {
+		latitude: location.coords.latitude,
+		longitude: location.coords.longitude
+	    };
+	    userService.update(user);
+	    Auth.setUser(user);
+
+	    this.getFriendsAround();
+	},
+
+	onGetLocationError: function() {
+	    alert("Uuups! Leider konnten wir dich nicht finden :(");
+	},
+
+	getFriendsAround: function() {
+	    var user = Auth.getUser();
+	    var latlon = user.location.latitude + "," + user.location.longitude;
+
+	    var options = {
+		type: "users",
+		client: dataClient,
+		qs: {ql: "location within 16000 of " + latlon}
+	    };
+	    var collection = new Apigee.Collection(options);
+	    collection.fetch(function (error, response) {
+		if (error) {
+		    
+		} else {
+		    if (response.count > 0) {
+			for (var n = 0; n < response.count; n++) {
+			    console.log(response.entities[n].location);
+			    setMarker(user, response.entities[n]);
+			}
+
+			return response.entities;
+		    } else {
+			alert("Wir haben leider keine Sammler in deinem Umkreis gefunden");
+			return [];
+		    }
+		}
+	    });
+	}
+    };
+}]);
